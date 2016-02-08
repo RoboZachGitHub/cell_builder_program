@@ -28,93 +28,94 @@ class Unit_cell:
 			if crystal_type_string in valid_crystal_types:
 				self.crystal_type = crystal_type_string
 			else:
-					print 'invalid crystal type'
-					sys.exit()
+				print 'invalid crystal type'
+				sys.exit()
 
 	def apply_secondary_lattice_sites(self):
-			### for now; this function is doing extra work instead of just setting the secondary lattice list
-			a = self.a1		
-			crystal_type = self.crystal_type
-			if crystal_type == 'simple_cubic':
-				# for simple cubis there are no secondary lattice points, so they should just be the same as the primary ones
-				# so the only thing needed is to add the cartesian information to the points
-				for lattice_point in self.lattice_point_list:
-					
-					secondary_points_list = [lattice_point.matrix_coordinates]
-					lattice_point.set_secondary_matrix_coordinates(secondary_points_list)
-					
-
-					### for now; this function is doing extra work instead of just setting the secondary lattice list
-					# calculate the cartesian coordinates for the lattice points and set them
-					cartesian_x = lattice_point.matrix_coordinates[0]*a	
-					cartesian_y = lattice_point.matrix_coordinates[1]*a	
-					cartesian_z = lattice_point.matrix_coordinates[2]*a
-					lattice_point.set_cartesian_coordinates(cartesian_x, cartesian_y, cartesian_z)
-					
-					#print info
-					lattice_point.print_matrix_coordinates()
-					lattice_point.print_cartesian_coordinates()
-	
-			if crystal_type == 'base_centered_cubic':
-				#for each lattice point there is the primary point and the point centered in the cube region
-				for lattice_point in self.lattice_point_list:
-
-					x_1 = lattice_point.matrix_coordinates[0]
-					y_1 = lattice_point.matrix_coordinates[1]
-					z_1 = lattice_point.matrix_coordinates[2]
-
-					x_2 = x_1 + 0.5
-					y_2 = y_1 + 0.5
-					z_2 = z_1 + 0.5
-
-					secondary_points_list = [[x_1,y_1,z_1], [x_2,y_2,z_2]]		
-					lattice_point.set_secondary_matrix_coordinates(secondary_points_list)
-
-			if crystal_type == '110_base_centered_cubic':
-				for lattice_point in self.lattice_point_list:
-
-					x_1 = lattice_point.matrix_coordinates[0]
-					y_1 = lattice_point.matrix_coordinates[1]
-					z_1 = lattice_point.matrix_coordinates[2]
-
-					x_2 = x_1 + 0.5
-					y_2 = y_1 + 0.5
-					z_2 = z_1 
-
-					x_3 = x_1 
-					y_3 = y_1 + 0.5
-					z_3 = z_1 + 0.5
-					
-					x_4 = x_1 + 0.5
-					y_4 = y_1 
-					z_4 = z_1 + 0.5
- 
-					secondary_points_list = [[x_1,y_1,z_1], [x_2,y_2,z_2], [x_3,y_3,z_3], [x_4,y_4,z_4]]		
-					lattice_point.set_secondary_matrix_coordinates(secondary_points_list)
+		### for now; this function is doing extra work instead of just setting the secondary lattice list
+		a = self.a1		
+		crystal_type = self.crystal_type
+		if crystal_type == 'simple_cubic':
+			# for simple cubis there are no secondary lattice points, so they should just be the same as the primary ones
+			# so the only thing needed is to add the cartesian information to the points
+			for lattice_point in self.lattice_point_list:
 				
+				secondary_points_list = [lattice_point.matrix_coordinates]
+				lattice_point.set_secondary_matrix_coordinates(secondary_points_list)
+				
+
+				### for now; this function is doing extra work instead of just setting the secondary lattice list
+				# calculate the cartesian coordinates for the lattice points and set them
+				cartesian_x = lattice_point.matrix_coordinates[0]*a	
+				cartesian_y = lattice_point.matrix_coordinates[1]*a	
+				cartesian_z = lattice_point.matrix_coordinates[2]*a
+				lattice_point.set_cartesian_coordinates(cartesian_x, cartesian_y, cartesian_z)
+				
+				#print info
+				lattice_point.print_matrix_coordinates()
+				lattice_point.print_cartesian_coordinates()
+
+		if crystal_type == 'base_centered_cubic':
+			#for each lattice point there is the primary point and the point centered in the cube region
+			for lattice_point in self.lattice_point_list:
+
+				x_1 = lattice_point.matrix_coordinates[0]
+				y_1 = lattice_point.matrix_coordinates[1]
+				z_1 = lattice_point.matrix_coordinates[2]
+
+				x_2 = x_1 + 0.5
+				y_2 = y_1 + 0.5
+				z_2 = z_1 + 0.5
+
+				secondary_points_list = [[x_1,y_1,z_1], [x_2,y_2,z_2]]		
+				lattice_point.set_secondary_matrix_coordinates(secondary_points_list)
+
+		if crystal_type == '110_base_centered_cubic':
+			for lattice_point in self.lattice_point_list:
+
+				x_1 = lattice_point.matrix_coordinates[0]
+				y_1 = lattice_point.matrix_coordinates[1]
+				z_1 = lattice_point.matrix_coordinates[2]
+
+				x_2 = x_1 + 0.5
+				y_2 = y_1 + 0.5
+				z_2 = z_1 
+
+				x_3 = x_1 
+				y_3 = y_1 + 0.5
+				z_3 = z_1 + 0.5
+				
+				x_4 = x_1 + 0.5
+				y_4 = y_1 
+				z_4 = z_1 + 0.5
+
+				secondary_points_list = [[x_1,y_1,z_1], [x_2,y_2,z_2], [x_3,y_3,z_3], [x_4,y_4,z_4]]		
+				lattice_point.set_secondary_matrix_coordinates(secondary_points_list)
+			
 
 	def set_cartesians(self):
 		crystal_type = self.crystal_type		
 		a1 = self.a1
-
-		list_of_coordinate_sets = []		
-
+	
+	
 		# a1 equal to a2 equal to a3
 		a1_e_a2_e_a3 = ['simple_cubic', 'base_centered_cubic']
-
+	
 		if crystal_type in a1_e_a2_e_a3:	
 			for lattice_point in self.lattice_point_list:
+				list_of_coordinate_sets = []
 				for point in lattice_point.secondary_matrix_coordinates:
 					x = a1*point[0]
 					y = a1*point[1]
 					z = a1*point[2]
 					list_of_coordinate_sets.append([x,y,z])
 				lattice_point.set_cartesian_coordinates(list_of_coordinate_sets)
-
+	
 		elif crystal_type == '110_base_centered_cubic':
 			a1 = a1
 			a2 = a1*math.sqrt(2)
 			for lattice_point in self.lattice_point_list:
+				list_of_coordinate_sets = []
 				for point in lattice_point.secondary_matrix_coordinates:
 					x = a1*point[0]
 					y = a2*point[1]
@@ -125,21 +126,15 @@ class Unit_cell:
 		else:
 			print "crystal type invalid or not yet fully implemented"
 			sys.exit()		
-
-		
-
-
-
+	
+	
 	def set_major_axes(self):
 		a = self.a1
 		vacuum_list = self.vacuum_list
 		x_vac = vacuum_list[0]
 		y_vac = vacuum_list[1]
 		z_vac = vacuum_list[2]
-
-		print "in set_major_axes, vacuum_list is "
-		print self.vacuum_list
-
+	
 		x_max, y_max, z_max = self.return_maxes()
 		
 		crystal_type = self.crystal_type
@@ -153,23 +148,20 @@ class Unit_cell:
 				major_y = y_max + y_vac
 			else:
 				major_y = y_max + a  
-
+	
 			if z_vac != 0.0:
 				major_z = z_max + z_vac
 			else:
 				major_z = z_max + a
-
+	
 			self.major_axes = [major_x, major_y, major_z]
 			print self.major_axes
-
-
+	
+	
 	def set_vacuum_list(self, length_list):
-		print "hello in set_vacuum_list"
 		self.vacuum_list = length_list
-		print length_list
-		print self.vacuum_list		
-
-
+	
+	
 	def return_maxes(self):
 		x_max = 0.0
 		y_max = 0.0
@@ -193,17 +185,19 @@ class Unit_cell:
 			for matrix_coordinate in lattice_point.secondary_matrix_coordinates:
 				print matrix_coordinate
 
+
 	def print_all_cartesian_points(self):
 		for lattice_point in self.lattice_point_list:
 			print "\n"
 			lattice_point.print_cartesian_coordinates()
+
 
 class Lattice_point:
 
 	def __init__(self, matrix_coordinates = None, cartesian_coordinates = None, secondary_matrix_coordinates = None):
 #			self.set_matrix_coordinates = self.set_matrix_coordinates(matrix_coordinates)
 		self.matrix_coordinates = matrix_coordinates
-	
+
 	def set_matrix_coordinates(self, integer_list):
 		self.matrix_coordinates = [integer_list[0], integer_list[1], integer_list[2]]
 
@@ -219,8 +213,15 @@ class Lattice_point:
 		print self.matrix_coordinates
 
 	def print_cartesian_coordinates(self):
+		m_x = self.matrix_coordinates[0]
+		m_y = self.matrix_coordinates[1]
+		m_z = self.matrix_coordinates[2]
+		print "! unit %d %d %d" % (m_x, m_y, m_z)
 		for point in self.cartesian_coordinates:
-			print point
+			x = point[0]
+			y = point[1]
+			z = point[2]
+			print "{:^10.5f} {:^10.5f} {:^10.5f}".format(x, y, z)
 	
 	
 
@@ -232,10 +233,9 @@ class Lattice_point:
 
 
 def main():
-	print "here"
 	# number of lattice points (number of sub_cells)
-	x = 1
-	y = 1
+	x = 2
+	y = 2
 	z = 1
 	lattice_sites = []
 	for i in range(x):
