@@ -164,6 +164,10 @@ class Unit_cell:
 	
 			self.major_axes = [major_x, major_y, major_z]
 			print self.major_axes
+		
+		else:
+			print "set_major_axis not yet defined for %s" % self.crystal_type
+			sys.exit()
 	
 	
 	def set_vacuum_list(self, length_list):
@@ -177,15 +181,17 @@ class Unit_cell:
 		y_max = 0.0
 		z_max = 0.0
 		for lattice_point in self.lattice_point_list:
-			cart_x = lattice_point.cartesian_coordinates[0]
-			cart_y = lattice_point.cartesian_coordinates[1]
-			cart_z = lattice_point.cartesian_coordinates[2]
-			if cart_x > x_max:
-				x_max = cart_x
-			if cart_y > y_max:
-				y_max = cart_y
-			if cart_z > z_max:
-				z_max = cart_z
+			cartesian_sets = lattice_point.cartesian_coordinates
+			for cartesian_set in cartesian_sets:
+				cart_x = cartesian_set[0]
+				cart_y = cartesian_set[1]
+				cart_z = cartesian_set[2]
+				if cart_x > x_max:
+					x_max = cart_x
+				if cart_y > y_max:
+					y_max = cart_y
+				if cart_z > z_max:
+					z_max = cart_z
 		print x_max
 		print y_max
 		print z_max
