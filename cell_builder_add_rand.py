@@ -18,21 +18,28 @@ class Unit_cell:
 
 
 	def print_alats(self):
-			print self.alats
+		print "in print_alats"
+		print self.alats
+
 
 	def set_a1(self, a1):
+		print "in set_a1"
 		self.a1 = a1
 
+
 	def set_crystal_type(self, crystal_type_string):
-			# check if crystal_type_string is valid, if so apply, else exit
-			valid_crystal_types = ['simple_cubic', 'base_centered_cubic', '110_base_centered_cubic']
-			if crystal_type_string in valid_crystal_types:
-				self.crystal_type = crystal_type_string
-			else:
-				print 'invalid crystal type'
-				sys.exit()
+		print "in set_crystal_type"
+		# check if crystal_type_string is valid, if so apply, else exit
+		valid_crystal_types = ['simple_cubic', 'base_centered_cubic', '110_base_centered_cubic']
+		if crystal_type_string in valid_crystal_types:
+			self.crystal_type = crystal_type_string
+		else:
+			print 'invalid crystal type'
+			sys.exit()
+
 
 	def apply_secondary_lattice_sites(self):
+		print "in apply_secondary_lattice_sites"
 		### for now; this function is doing extra work instead of just setting the secondary lattice list
 		a = self.a1		
 		crystal_type = self.crystal_type
@@ -42,8 +49,7 @@ class Unit_cell:
 			for lattice_point in self.lattice_point_list:
 				
 				secondary_points_list = [lattice_point.matrix_coordinates]
-				lattice_point.set_secondary_matrix_coordinates(secondary_points_list)
-				
+				lattice_point.set_secondary_matrix_coordinates(secondary_points_list)				
 
 				### for now; this function is doing extra work instead of just setting the secondary lattice list
 				# calculate the cartesian coordinates for the lattice points and set them
@@ -95,9 +101,9 @@ class Unit_cell:
 			
 
 	def set_cartesians(self):
+		print "in set_cartesians"
 		crystal_type = self.crystal_type		
 		a1 = self.a1
-	
 	
 		# a1 equal to a2 equal to a3
 		a1_e_a2_e_a3 = ['simple_cubic', 'base_centered_cubic']
@@ -130,6 +136,7 @@ class Unit_cell:
 	
 	
 	def set_major_axes(self):
+		print "in set_major_axes"
 		a = self.a1
 		vacuum_list = self.vacuum_list
 		x_vac = vacuum_list[0]
@@ -160,10 +167,12 @@ class Unit_cell:
 	
 	
 	def set_vacuum_list(self, length_list):
+		print "in set_vacuum_list"
 		self.vacuum_list = length_list
 	
 	
 	def return_maxes(self):
+		print "in return_maxes"
 		x_max = 0.0
 		y_max = 0.0
 		z_max = 0.0
@@ -177,17 +186,29 @@ class Unit_cell:
 				y_max = cart_y
 			if cart_z > z_max:
 				z_max = cart_z
+		print x_max
+		print y_max
+		print z_max
 		print "(x_max, y_max, z_max): (%f, %f, %f)" % (x_max, y_max, z_max)
 		return x_max, y_max, z_max
 
+	
+	def return_layers(self):
+		print "in return_layers"
+		x_max, y_max, z_max = self.return_maxes()
+		print x_max
+		print y_max
+		print z_max
+
 
 	def print_all_matrix_points(self):
+		print "in print_all_matrix_points"
 		for lattice_point in self.lattice_point_list:
-			for matrix_coordinate in lattice_point.secondary_matrix_coordinates:
-				print matrix_coordinate
+			lattice_point.print_matrix_coordinates()
 
 
 	def print_all_cartesian_points(self):
+		print "in print_all_cartesian_points"
 		for lattice_point in self.lattice_point_list:
 			print "\n"
 			lattice_point.print_cartesian_coordinates()
@@ -214,7 +235,10 @@ class Lattice_point:
 		self.extra_cartesian_coordinates = list_of_coordinate_sets
 
 	def print_matrix_coordinates(self):
-		print self.matrix_coordinates
+		m_x = self.matrix_coordinates[0]
+		m_y = self.matrix_coordinates[1]
+		m_z = self.matrix_coordinates[2]
+		print "! unit %d %d %d" % (m_x, m_y, m_z)
 
 	def print_cartesian_coordinates(self):
 		m_x = self.matrix_coordinates[0]
@@ -265,9 +289,9 @@ def kick_atoms(unit_cell, layers_list):
 
 def main():
 	# number of lattice points (number of sub_cells)
-	x = 2
-	y = 2
-	z = 1
+	x = 4
+	y = 4
+	z = 2
 	lattice_sites = []
 	for i in range(x):
 		for j in range(y):
@@ -282,10 +306,13 @@ def main():
 	new_unit_cell = Unit_cell(lattice_sites)
 	new_unit_cell.set_crystal_type('110_base_centered_cubic')
 	new_unit_cell.set_a1(3.1870)
-	new_unit_cell.set_vacuum_list([0.0, 0.0, 0.0])
+#	new_unit_cell.set_vacuum_list([0.0, 0.0, 0.0])
 	new_unit_cell.apply_secondary_lattice_sites()
 	new_unit_cell.set_cartesians()
-	new_unit_cell.print_all_cartesian_points()
+	new_unit_cell.return_maxes()
+#	new_unit_cell.return_layers()
+#	new_unit_cell.print_all_cartesian_points()
+#	new_unit_cell.print_all_matrix_points()
 #	new_unit_cell.set_vacuum_list([0.0, 0.0, 20.0])
 #	new_unit_cell.set_major_axes()
 
