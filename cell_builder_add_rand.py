@@ -17,14 +17,20 @@ class Unit_cell:
 #			self.set_major_axes()
 
 
+
+
 	def print_alats(self):
 		print "in print_alats"
 		print self.alats
 
 
+
+
 	def set_a1(self, a1):
 		print "in set_a1"
 		self.a1 = a1
+
+
 
 
 	def set_crystal_type(self, crystal_type_string):
@@ -36,6 +42,8 @@ class Unit_cell:
 		else:
 			print 'invalid crystal type'
 			sys.exit()
+
+
 
 
 	def apply_secondary_lattice_sites(self):
@@ -98,6 +106,8 @@ class Unit_cell:
 
 				secondary_points_list = [[x_1,y_1,z_1], [x_2,y_2,z_2], [x_3,y_3,z_3], [x_4,y_4,z_4]]		
 				lattice_point.set_secondary_matrix_coordinates(secondary_points_list)
+
+
 			
 
 	def set_cartesians(self):
@@ -134,10 +144,12 @@ class Unit_cell:
 			print "crystal type invalid or not yet fully implemented"
 			sys.exit()		
 	
+
+
 	
 	def set_major_axes(self):
 		print "in set_major_axes"
-		a = self.a1
+		a1 = self.a1
 		vacuum_list = self.vacuum_list
 		x_vac = vacuum_list[0]
 		y_vac = vacuum_list[1]
@@ -146,33 +158,62 @@ class Unit_cell:
 		x_max, y_max, z_max = self.return_maxes()
 		
 		crystal_type = self.crystal_type
-		if crystal_type == 'simple_cubic':
+	
+		# a1 equal to a2 equal to a3
+		a1_e_a2_e_a3 = ['simple_cubic', 'base_centered_cubic']
+
+		if crystal_type in a1_e_a2_e_a3:
+			a1 = a1
 			if x_vac != 0.0:
 				major_x = x_max + x_vac
 			else:
-				major_x = x_max + a  
+				major_x = x_max + a1  
 			
 			if y_vac != 0.0:
 				major_y = y_max + y_vac
 			else:
-				major_y = y_max + a  
+				major_y = y_max + a1  
 	
 			if z_vac != 0.0:
 				major_z = z_max + z_vac
 			else:
-				major_z = z_max + a
+				major_z = z_max + a1
 	
-			self.major_axes = [major_x, major_y, major_z]
-			print self.major_axes
-		
+
+		if crystal_type == "110_base_centered_cubic": 
+			a1 = a1
+			a2 = a1*math.sqrt(2)
+			if x_vac != 0.0:
+				major_x = x_max + x_vac
+			else:
+				major_x = x_max + a1*0.5
+ 
+			if y_vac != 0.0:
+				major_y = y_max + y_vac
+			else:
+				major_y = y_max + a2*0.5	
+
+			if z_vac != 0.0:
+				major_z = z_max + z_vac
+			else:			
+				major_z = z_max + a2*0.5				
+
+	
 		else:
 			print "set_major_axis not yet defined for %s" % self.crystal_type
 			sys.exit()
 	
+		self.major_axes = [major_x, major_y, major_z]
+		print self.major_axes
+
+
+
 	
 	def set_vacuum_list(self, length_list):
 		print "in set_vacuum_list"
 		self.vacuum_list = length_list
+
+
 	
 	
 	def return_maxes(self):
@@ -215,10 +256,13 @@ class Unit_cell:
 			
 
 
+
 	def print_all_matrix_points(self):
 		print "in print_all_matrix_points"
 		for lattice_point in self.lattice_point_list:
 			lattice_point.print_matrix_coordinates()
+
+
 
 
 	def print_all_cartesian_points(self):
@@ -226,6 +270,12 @@ class Unit_cell:
 		for lattice_point in self.lattice_point_list:
 			print "\n"
 			lattice_point.print_cartesian_coordinates()
+
+
+
+
+
+
 
 
 class Lattice_point:
@@ -285,15 +335,19 @@ def add_random_surface_atom(unit_cell):
 	major_x = unit_cell.major_axes[0]
 	major_y = unit_cell.major_axes[1]
 
+	print "major_x, major_y"
+	print major_x
+	print major_y
+
 	# use cube + discard method
 	# i.e.  generate random point in cube and discard if outside of desired sphere
 	# also make sure new point is inside bounds of the unit cell
-	inside_sphere = False
-	inside_bounds = False
-	while not inside_sphere and not inside_bounds:
-		del_x = random.uniform(-1.5*a1, 1.5*a1)
-		del_y = random.uniform(-1.5*a1, 1.5*a1)
-		del_z = random.uniform(0.0, 1.5*a1)
+#	inside_sphere = False
+#	inside_bounds = False
+#	while not inside_sphere and not inside_bounds:
+#		del_x = random.uniform(-1.5*a1, 1.5*a1)
+#		del_y = random.uniform(-1.5*a1, 1.5*a1)
+#		del_z = random.uniform(0.0, 1.5*a1)
 	
 
 
