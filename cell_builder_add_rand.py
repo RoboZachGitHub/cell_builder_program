@@ -1,6 +1,6 @@
 # cell_builder.py
 
-import math
+from math import sqrt
 import sys
 import random
 
@@ -329,6 +329,11 @@ def add_random_surface_atom(unit_cell):
 
 	print "in add_random_surface_atom"
 	a1 = unit_cell.a1
+	
+	# too_close is used later to check of atoms are within that distance to another atom
+	# too_close is in units of Angstrom
+	too_close = 1.0
+
 	x_max, y_max, z_max = unit_cell.return_maxes()
 
 	# get boundaries of unit cell in x and y direction
@@ -359,21 +364,81 @@ def add_random_surface_atom(unit_cell):
 	for coord in random_cartesian_set:
 		print coord
 
+	start_x = random_cartesian_set[0]
+	start_y = random_cartesian_set[1]
+	start_z = random_cartesian_set[2]
+
 	# use cube + discard method
 	# i.e.  generate random point in cube and discard if outside of desired sphere
 	# also make sure new point is inside bounds of the unit cell
-
+	inside_sphere = False
+	any_too_close = True
+	while not inside_sphere and any_too_close:
+		del_x = random.uniform(-1.5*a1, 1.5*a1)
+		del_y = random.uniform(-1.5*a1, 1.5*a1)
+		del_z = random.uniform(0.0, 1.5*a1)
+		# check if within eligible sphere	
+		r = math.sqrt(del_x**2 + del_y**2 + del_z**2)
+		if r <= 1.5*a1:
+			inside_sphere = True
+		else:
+			# continue sends code back to the beginning of the while loop
+			continue
 	
+		new_x = start_x + del_x		
+		new_y = start_y + del_y		
+		new_z = start_z + del_z		
+	
+		# if new_x or new_y coordinates are outside of the major axes, subtract to give appropriate positions
+		# this should never occur for new_z, but check just in case
+		if new_x > major_x:
+			new_x = (new_x - major_x)				
+		if new_y > major_y:
+			new_y = (new_y - major_y)				
+		if new_z > major_z:
+			print "is the cell set up with a suitable vacuum? new_z is outside of cell"
+			sys.exit()
 
-#	inside_sphere = False
-#	inside_bounds = False
-#	while not inside_sphere and not inside_bounds:
-#		del_x = random.uniform(-1.5*a1, 1.5*a1)
-#		del_y = random.uniform(-1.5*a1, 1.5*a1)
-#		del_z = random.uniform(0.0, 1.5*a1)
+		# now check weather too close to any pre-existing atoms
+		# if no atoms are too close we assign too_close to false
+		# if any are too close, we continue, sending code back to the beginning of the while loop
+		cartesian_sets = []
+		for lattice_point in list_of_surface_unit_lattice_points: 	
+			for cartesian_set in lattice_point.cartesian_coordinates:
+				cartesian_sets.append(cartesian_set)
 		
-	
+		any_too_close = too_close_checker(cartesian_sets, [new_x, new_y, new_z], too_close)
+				
 
+
+	# new point passed all tests, add it as an extra set of cartesians to the lattice_pont that was chosen
+	random_lattice_point.set_extra_cartesian_coordinates([[new_x, new_y, new_z]])
+	
+		
+		
+def too_close_checker(cartesian_sets, cartesian_set_to_check, dist):
+	x1 = cartesian_set_to_check[0] 	
+	y1 = cartesian_set_to_check[1] 	
+	z1 = cartesian_set_to_check[2]
+ 	
+	for cartesian_set in cartesian_sets:
+		x2 = cartesian_set[0] 	
+		y2 = cartesian_set[1] 	
+		z2 = cartesian_set[2]
+
+		del_x = x1 - x2 	
+		del_y = y1 - y2 	
+		del_z = z1 - z2 	
+
+		r = math.sqrt(del_x**2 + del_y**2 + del_z**2)
+	
+		if r < dist:
+			return True
+		else:
+			continue
+
+	# returns False if made it through the list
+	return False
 
 
 # kick atoms
@@ -401,7 +466,7 @@ def main():
 	new_unit_cell = Unit_cell(lattice_sites)
 	new_unit_cell.set_crystal_type('110_base_centered_cubic')
 	new_unit_cell.set_a1(3.1870)
-#	new_unit_cell.set_vacuum_list([0.0, 0.0, 0.0])
+	new_unit_cell.set_vacuum_list([0.0, 0.0, 20.0])
 	new_unit_cell.apply_secondary_lattice_sites()
 	new_unit_cell.set_cartesians()
 	new_unit_cell.return_maxes()
