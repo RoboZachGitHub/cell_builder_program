@@ -11,7 +11,7 @@ class Unit_cell:
 			self.a1 = a1
 			self.alats = alats
 			self.basis = basis
-#			self.vacuum_list = vacuum_list
+			self.vacuum_list = vacuum_list
 #			self.set_crystal_type(crystal_type)
 #			self.apply_secondary_lattice_sites()
 #			self.set_major_axes()
@@ -199,12 +199,20 @@ class Unit_cell:
 		return x_max, y_max, z_max
 
 	
-	def return_layers(self):
-		print "in return_layers"
-		x_max, y_max, z_max = self.return_maxes()
-		print x_max
-		print y_max
-		print z_max
+#	def return_layers(self):
+#		# returns all latice points ( which are sets of cartesian points or single points) that include the maximum z-value 
+#		print "in return_layers"
+##		print "this function assumes layers are defined by the z-axis"
+#		
+#		x_max, y_max, z_max = self.return_maxes()
+#	
+#		z_surface_points = []
+#		
+#		lattice_points = self.lattice_point_list
+#		for lattice_point in lattice_points:
+#			cartesian_sets = lattice_point.cartesian_coordinates
+#			for cartesian_set in cartesian_sets:
+			
 
 
 	def print_all_matrix_points(self):
@@ -268,11 +276,14 @@ class Lattice_point:
 def add_random_surface_atom(unit_cell):
 	# generate random number for radius in range 1.5*a1 and random angles 
 	# choose a random surface layer atom to displace from
+
+	print "in add_random_sruface_atom"
 	a1 = unit_cell.a1
+	x_max, y_max, z_max = unit_cell.return_maxes()
 
-	
-	
-
+	# get boundaries of unit cell in x and y direction
+	major_x = unit_cell.major_axes[0]
+	major_y = unit_cell.major_axes[1]
 
 	# use cube + discard method
 	# i.e.  generate random point in cube and discard if outside of desired sphere
@@ -316,6 +327,11 @@ def main():
 	new_unit_cell.apply_secondary_lattice_sites()
 	new_unit_cell.set_cartesians()
 	new_unit_cell.return_maxes()
+	new_unit_cell.set_major_axes()
+
+
+	add_random_surface_atom(new_unit_cell)	
+
 #	new_unit_cell.return_layers()
 #	new_unit_cell.print_all_cartesian_points()
 #	new_unit_cell.print_all_matrix_points()
