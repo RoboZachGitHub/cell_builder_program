@@ -327,7 +327,7 @@ def add_random_surface_atom(unit_cell):
 	# generate random number for radius in range 1.5*a1 and random angles 
 	# choose a random surface layer atom to displace from
 
-	print "in add_random_sruface_atom"
+	print "in add_random_surface_atom"
 	a1 = unit_cell.a1
 	x_max, y_max, z_max = unit_cell.return_maxes()
 
@@ -339,15 +339,39 @@ def add_random_surface_atom(unit_cell):
 	print major_x
 	print major_y
 
+	# grab a random atom contained in the surface layer (entire unit, not just max z)
+	# this is the atom that will be used to perturb from
+	list_of_surface_unit_lattice_points = []
+	lattice_points = unit_cell.lattice_point_list
+	for lattice_point in lattice_points:
+		cartesian_sets = lattice_point.cartesian_coordinates
+		for cartesian_set in cartesian_sets:
+			z_coord = cartesian_set[2]
+			if z_coord == z_max:
+				list_of_surface_unit_lattice_points.append(lattice_point)
+
+	# first choose random lattice point and keep track of it, then choose random cartesian and keep track of it
+	random_lattice_point = random.choice(list_of_surface_unit_lattice_points)	
+	print "matrix coordinates of randomly chosen lattice point"
+	random_lattice_point.print_matrix_coordinates()	
+	random_cartesian_set = random.choice(random_lattice_point.cartesian_coordinates)
+	print "cartesian coordinates of randomly chosen cartesian set"
+	for coord in random_cartesian_set:
+		print coord
+
 	# use cube + discard method
 	# i.e.  generate random point in cube and discard if outside of desired sphere
 	# also make sure new point is inside bounds of the unit cell
+
+	
+
 #	inside_sphere = False
 #	inside_bounds = False
 #	while not inside_sphere and not inside_bounds:
 #		del_x = random.uniform(-1.5*a1, 1.5*a1)
 #		del_y = random.uniform(-1.5*a1, 1.5*a1)
 #		del_z = random.uniform(0.0, 1.5*a1)
+		
 	
 
 
@@ -360,8 +384,8 @@ def kick_atoms(unit_cell, layers_list):
 
 def main():
 	# number of lattice points (number of sub_cells)
-	x = 4
-	y = 4
+	x = 2 
+	y = 2
 	z = 2
 	lattice_sites = []
 	for i in range(x):
