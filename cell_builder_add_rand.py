@@ -192,7 +192,6 @@ class Unit_cell:
 			sys.exit()
 	
 		self.major_axes = [major_x, major_y, major_z]
-		print self.major_axes
 
 	
 	def set_vacuum_list(self, length_list):
@@ -217,9 +216,6 @@ class Unit_cell:
 					y_max = cart_y
 				if cart_z > z_max:
 					z_max = cart_z
-		print x_max
-		print y_max
-		print z_max
 		print "(x_max, y_max, z_max): (%f, %f, %f)" % (x_max, y_max, z_max)
 		return x_max, y_max, z_max
 
@@ -290,7 +286,7 @@ class Lattice_point:
 		m_z = self.matrix_coordinates[2]
 		print "! unit %d %d %d" % (m_x, m_y, m_z)
 
-	def print_cartesian_coordinates(self):
+	def return_cartesian_coordinates_string(self):
 		
 		stringer = ""		
 
@@ -312,15 +308,18 @@ class Lattice_point:
 			stringer += "\n! extra coordinates \n"
 			for i, extra_cartesian_set in enumerate(extra_cartesian_sets):
 				atom_string = atoms_list[i]
-				x = cartesian_set[0]
-				y = cartesian_set[1]
-				z = cartesian_set[2]
+				x = extra_cartesian_set[0]
+				y = extra_cartesian_set[1]
+				z = extra_cartesian_set[2]
 				stringer += "{:5s} {:^10.5f} {:^10.5f} {:^10.5f}\n".format(atom_string, x, y, z)
 		except AttributeError:
 			pass
 
-		print stringer
-		return stringer	
+		return stringer
+
+	def print_cartesian_coordinates(self):
+		stringer = self.return_cartesian_coordinates_string()
+		print stringer	
 
 
 #class Cavity:
@@ -361,12 +360,12 @@ def add_random_surface_atom(unit_cell, atom_type):
 
 	# first choose random lattice point and keep track of it, then choose random cartesian and keep track of it
 	random_lattice_point = random.choice(list_of_surface_unit_lattice_points)	
-	print "matrix coordinates of randomly chosen lattice point"
+	#print "matrix coordinates of randomly chosen lattice point"
 	random_lattice_point.print_matrix_coordinates()	
 	random_cartesian_set = random.choice(random_lattice_point.cartesian_coordinates)
-	print "cartesian coordinates of randomly chosen cartesian set"
-	for coord in random_cartesian_set:
-		print coord
+	#print "cartesian coordinates of randomly chosen cartesian set"
+	#for coord in random_cartesian_set:
+	#	print coord
 
 	start_x = random_cartesian_set[0]
 	start_y = random_cartesian_set[1]
@@ -378,12 +377,12 @@ def add_random_surface_atom(unit_cell, atom_type):
 	inside_sphere = False
 	any_too_close = True
 	while not inside_sphere and any_too_close:
-		del_x = random.uniform(-1.5*a1, 1.5*a1)
-		del_y = random.uniform(-1.5*a1, 1.5*a1)
-		del_z = random.uniform(0.0, 1.5*a1)
+		del_x = random.uniform(-a1, a1)
+		del_y = random.uniform(-a1, a1)
+		del_z = random.uniform(0.0, a1)
 		# check if within eligible sphere	
 		r = sqrt(del_x**2 + del_y**2 + del_z**2)
-		if r <= 1.5*a1:
+		if r <= (a1):
 			inside_sphere = True
 		else:
 			# continue sends code back to the beginning of the while loop
@@ -391,19 +390,23 @@ def add_random_surface_atom(unit_cell, atom_type):
 	
 		new_x = start_x + del_x		
 		new_y = start_y + del_y		
-		new_z = start_z + del_z		
-	
+		new_z = start_z + del_z	
+
 		# if new_x or new_y coordinates are outside of the major axes, subtract to give appropriate positions
 		# this should never occur for new_z, but check just in case
 		if new_x > major_x:
 			new_x = (new_x - major_x)				
+		if new_x < 0.0:
+			new_x = (major_x + new_x)
 		if new_y > major_y:
 			new_y = (new_y - major_y)				
+		if new_y < 0.0:
+			new_y = (major_y + new_y)
 		if new_z > major_z:
 			print "is the cell set up with a suitable vacuum? new_z is outside of cell"
 			sys.exit()
 
-		# now check weather too close to any pre-existing atoms
+		# now check whether too close to any pre-existing atoms
 		# if no atoms are too close we assign too_close to false
 		# if any are too close, we continue, sending code back to the beginning of the while loop
 		cartesian_sets = []
@@ -417,11 +420,6 @@ def add_random_surface_atom(unit_cell, atom_type):
 	# new point passed all tests, add it as an extra set of cartesians to the lattice_point that was chosen
 	random_lattice_point.set_extra_cartesian_coordinates([[new_x, new_y, new_z]])
 	random_lattice_point.set_extra_atoms_list([atom_type])
-	print "checking random atom info"
-	random_lattice_point.print_matrix_coordinates()
-	random_lattice_point.print_cartesian_coordinates()
-	print random_lattice_point.atoms_list
-	print random_lattice_point.extra_atoms_list
 	
 		
 		
@@ -463,7 +461,7 @@ def output_cell(unit_cell, filename):
 
 	lattice_points = unit_cell.lattice_point_list
 	for lattice_point in lattice_points:
-		out_string += lattice_point.print_cartesian_coordinates()
+		out_string += lattice_point.return_cartesian_coordinates_string()
 		out_string += "\n\n\n"	
 
 	outFile.write(out_string)
@@ -496,8 +494,7 @@ def main():
 	new_unit_cell.set_major_axes()
 
 	add_random_surface_atom(new_unit_cell, 'H')
-	print "after add random"
-	new_unit_cell.print_all_cartesian_points()
+#	new_unit_cell.print_all_cartesian_points()
 	
 	output_cell(new_unit_cell, 'testing')
 
