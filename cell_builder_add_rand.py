@@ -17,33 +17,29 @@ class Unit_cell:
 #			self.set_major_axes()
 
 
-
-
 	def print_alats(self):
 		print "in print_alats"
 		print self.alats
-
-
 
 
 	def set_a1(self, a1):
 		print "in set_a1"
 		self.a1 = a1
 
+	def set_basis(self, atoms_list):
+		self.basis = atoms_list
 
 
-
-	def set_crystal_type(self, crystal_type_string):
+	def set_crystal_type(self, crystal_type_string, atoms_list):
 		print "in set_crystal_type"
 		# check if crystal_type_string is valid, if so apply, else exit
 		valid_crystal_types = ['simple_cubic', 'base_centered_cubic', '110_base_centered_cubic']
 		if crystal_type_string in valid_crystal_types:
 			self.crystal_type = crystal_type_string
+			self.set_basis(atoms_list)
 		else:
 			print 'invalid crystal type'
 			sys.exit()
-
-
 
 
 	def apply_secondary_lattice_sites(self):
@@ -59,16 +55,6 @@ class Unit_cell:
 				secondary_points_list = [lattice_point.matrix_coordinates]
 				lattice_point.set_secondary_matrix_coordinates(secondary_points_list)				
 
-				### for now; this function is doing extra work instead of just setting the secondary lattice list
-				# calculate the cartesian coordinates for the lattice points and set them
-				cartesian_x = lattice_point.matrix_coordinates[0]*a	
-				cartesian_y = lattice_point.matrix_coordinates[1]*a	
-				cartesian_z = lattice_point.matrix_coordinates[2]*a
-				lattice_point.set_cartesian_coordinates(cartesian_x, cartesian_y, cartesian_z)
-				
-				#print info
-				lattice_point.print_matrix_coordinates()
-				lattice_point.print_cartesian_coordinates()
 
 		if crystal_type == 'base_centered_cubic':
 			#for each lattice point there is the primary point and the point centered in the cube region
@@ -108,8 +94,6 @@ class Unit_cell:
 				lattice_point.set_secondary_matrix_coordinates(secondary_points_list)
 
 
-			
-
 	def set_cartesians(self):
 		print "in set_cartesians"
 		crystal_type = self.crystal_type		
@@ -127,10 +111,11 @@ class Unit_cell:
 					z = a1*point[2]
 					list_of_coordinate_sets.append([x,y,z])
 				lattice_point.set_cartesian_coordinates(list_of_coordinate_sets)
+				lattice_point.set_atoms_list(self.basis)				
 	
 		elif crystal_type == '110_base_centered_cubic':
 			a1 = a1
-			a2 = a1*math.sqrt(2)
+			a2 = a1*sqrt(2)
 			for lattice_point in self.lattice_point_list:
 				list_of_coordinate_sets = []
 				for point in lattice_point.secondary_matrix_coordinates:
@@ -139,13 +124,16 @@ class Unit_cell:
 					z = a2*point[2]
 					list_of_coordinate_sets.append([x,y,z])
 				lattice_point.set_cartesian_coordinates(list_of_coordinate_sets)
+				print "110_base_centered_cubic not yet modified for basis of two different atoms"
+				temporary_basis = 2*self.basis
+				lattice_point.set_atoms_list(temporary_basis)
+				print "checking basis"
+				print lattice_point.atoms_list
 		
 		else:
 			print "crystal type invalid or not yet fully implemented"
 			sys.exit()		
 	
-
-
 	
 	def set_major_axes(self):
 		print "in set_major_axes"
@@ -182,7 +170,7 @@ class Unit_cell:
 
 		if crystal_type == "110_base_centered_cubic": 
 			a1 = a1
-			a2 = a1*math.sqrt(2)
+			a2 = a1*sqrt(2)
 			if x_vac != 0.0:
 				major_x = x_max + x_vac
 			else:
@@ -206,14 +194,10 @@ class Unit_cell:
 		self.major_axes = [major_x, major_y, major_z]
 		print self.major_axes
 
-
-
 	
 	def set_vacuum_list(self, length_list):
 		print "in set_vacuum_list"
 		self.vacuum_list = length_list
-
-
 	
 	
 	def return_maxes(self):
@@ -253,16 +237,12 @@ class Unit_cell:
 #		for lattice_point in lattice_points:
 #			cartesian_sets = lattice_point.cartesian_coordinates
 #			for cartesian_set in cartesian_sets:
-			
-
 
 
 	def print_all_matrix_points(self):
 		print "in print_all_matrix_points"
 		for lattice_point in self.lattice_point_list:
 			lattice_point.print_matrix_coordinates()
-
-
 
 
 	def print_all_cartesian_points(self):
@@ -280,7 +260,7 @@ class Unit_cell:
 
 class Lattice_point:
 
-	def __init__(self, matrix_coordinates = None, cartesian_coordinates = None, secondary_matrix_coordinates = None):
+	def __init__(self, matrix_coordinates = None, cartesian_coordinates = None, extra_cartesian_coordinates = None, secondary_matrix_coordinates = None):
 #			self.set_matrix_coordinates = self.set_matrix_coordinates(matrix_coordinates)
 		self.matrix_coordinates = matrix_coordinates
 
@@ -295,8 +275,14 @@ class Lattice_point:
 	def set_cartesian_coordinates(self, list_of_coordinate_sets):
 		self.cartesian_coordinates = list_of_coordinate_sets
 
+	def set_atoms_list(self, atoms_list):
+		self.atoms_list = atoms_list
+
 	def set_extra_cartesian_coordinates(self, list_of_coordinate_sets):
 		self.extra_cartesian_coordinates = list_of_coordinate_sets
+
+	def set_extra_atoms_list(self, atoms_list):
+		self.extra_atoms_list = atoms_list
 
 	def print_matrix_coordinates(self):
 		m_x = self.matrix_coordinates[0]
@@ -305,17 +291,37 @@ class Lattice_point:
 		print "! unit %d %d %d" % (m_x, m_y, m_z)
 
 	def print_cartesian_coordinates(self):
+		
+		stringer = ""		
+
 		m_x = self.matrix_coordinates[0]
 		m_y = self.matrix_coordinates[1]
 		m_z = self.matrix_coordinates[2]
-		print "! unit %d %d %d" % (m_x, m_y, m_z)
-		for point in self.cartesian_coordinates:
-			x = point[0]
-			y = point[1]
-			z = point[2]
-			print "{:^10.5f} {:^10.5f} {:^10.5f}".format(x, y, z)
-	
-	
+		stringer += "! unit %d %d %d\n" % (m_x, m_y, m_z)
+		cartesian_sets = self.cartesian_coordinates
+		atoms_list = self.atoms_list
+		for i, cartesian_set in enumerate(cartesian_sets):
+			atom_string = atoms_list[i]
+			x = cartesian_set[0]
+			y = cartesian_set[1]
+			z = cartesian_set[2]
+			stringer +=  "{:5s} {:^10.5f} {:^10.5f} {:^10.5f}\n".format(atom_string, x, y, z)
+		try:
+			extra_cartesian_sets = self.extra_cartesian_coordinates
+			atoms_list = self.extra_atoms_list
+			stringer += "\n! extra coordinates \n"
+			for i, extra_cartesian_set in enumerate(extra_cartesian_sets):
+				atom_string = atoms_list[i]
+				x = cartesian_set[0]
+				y = cartesian_set[1]
+				z = cartesian_set[2]
+				stringer += "{:5s} {:^10.5f} {:^10.5f} {:^10.5f}\n".format(atom_string, x, y, z)
+		except AttributeError:
+			pass
+
+		print stringer
+		return stringer	
+
 
 #class Cavity:
 #	cavity_type
@@ -323,7 +329,7 @@ class Lattice_point:
 
 
 # random surface atom
-def add_random_surface_atom(unit_cell):
+def add_random_surface_atom(unit_cell, atom_type):
 	# generate random number for radius in range 1.5*a1 and random angles 
 	# choose a random surface layer atom to displace from
 
@@ -339,10 +345,8 @@ def add_random_surface_atom(unit_cell):
 	# get boundaries of unit cell in x and y direction
 	major_x = unit_cell.major_axes[0]
 	major_y = unit_cell.major_axes[1]
+	major_z = unit_cell.major_axes[2]
 
-	print "major_x, major_y"
-	print major_x
-	print major_y
 
 	# grab a random atom contained in the surface layer (entire unit, not just max z)
 	# this is the atom that will be used to perturb from
@@ -378,7 +382,7 @@ def add_random_surface_atom(unit_cell):
 		del_y = random.uniform(-1.5*a1, 1.5*a1)
 		del_z = random.uniform(0.0, 1.5*a1)
 		# check if within eligible sphere	
-		r = math.sqrt(del_x**2 + del_y**2 + del_z**2)
+		r = sqrt(del_x**2 + del_y**2 + del_z**2)
 		if r <= 1.5*a1:
 			inside_sphere = True
 		else:
@@ -408,11 +412,16 @@ def add_random_surface_atom(unit_cell):
 				cartesian_sets.append(cartesian_set)
 		
 		any_too_close = too_close_checker(cartesian_sets, [new_x, new_y, new_z], too_close)
-				
 
 
-	# new point passed all tests, add it as an extra set of cartesians to the lattice_pont that was chosen
+	# new point passed all tests, add it as an extra set of cartesians to the lattice_point that was chosen
 	random_lattice_point.set_extra_cartesian_coordinates([[new_x, new_y, new_z]])
+	random_lattice_point.set_extra_atoms_list([atom_type])
+	print "checking random atom info"
+	random_lattice_point.print_matrix_coordinates()
+	random_lattice_point.print_cartesian_coordinates()
+	print random_lattice_point.atoms_list
+	print random_lattice_point.extra_atoms_list
 	
 		
 		
@@ -430,7 +439,7 @@ def too_close_checker(cartesian_sets, cartesian_set_to_check, dist):
 		del_y = y1 - y2 	
 		del_z = z1 - z2 	
 
-		r = math.sqrt(del_x**2 + del_y**2 + del_z**2)
+		r = sqrt(del_x**2 + del_y**2 + del_z**2)
 	
 		if r < dist:
 			return True
@@ -445,6 +454,20 @@ def too_close_checker(cartesian_sets, cartesian_set_to_check, dist):
 def kick_atoms(unit_cell, layers_list):
 	a1 = unit_cell.a1
 	pass		
+
+
+
+def output_cell(unit_cell, filename):
+	outFile = open(filename + ".xyz", 'w')
+	out_string = ""
+
+	lattice_points = unit_cell.lattice_point_list
+	for lattice_point in lattice_points:
+		out_string += lattice_point.print_cartesian_coordinates()
+		out_string += "\n\n\n"	
+
+	outFile.write(out_string)
+	outFile.close()
 
 
 def main():
@@ -464,7 +487,7 @@ def main():
 
 
 	new_unit_cell = Unit_cell(lattice_sites)
-	new_unit_cell.set_crystal_type('110_base_centered_cubic')
+	new_unit_cell.set_crystal_type('110_base_centered_cubic', ['W', 'W'])
 	new_unit_cell.set_a1(3.1870)
 	new_unit_cell.set_vacuum_list([0.0, 0.0, 20.0])
 	new_unit_cell.apply_secondary_lattice_sites()
@@ -472,8 +495,11 @@ def main():
 	new_unit_cell.return_maxes()
 	new_unit_cell.set_major_axes()
 
-
-	add_random_surface_atom(new_unit_cell)	
+	add_random_surface_atom(new_unit_cell, 'H')
+	print "after add random"
+	new_unit_cell.print_all_cartesian_points()
+	
+	output_cell(new_unit_cell, 'testing')
 
 #	new_unit_cell.return_layers()
 #	new_unit_cell.print_all_cartesian_points()
