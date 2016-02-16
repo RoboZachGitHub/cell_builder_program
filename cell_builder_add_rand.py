@@ -337,7 +337,7 @@ def add_random_surface_atom(unit_cell, atom_type):
 	
 	# too_close is used later to check of atoms are within that distance to another atom
 	# too_close is in units of Angstrom
-	too_close = 1.0
+	too_close = 1.25
 
 	x_max, y_max, z_max = unit_cell.return_maxes()
 
@@ -376,7 +376,8 @@ def add_random_surface_atom(unit_cell, atom_type):
 	# also make sure new point is inside bounds of the unit cell
 	inside_sphere = False
 	any_too_close = True
-	while not inside_sphere and any_too_close:
+	while inside_sphere == False or any_too_close == True:
+		print "at beginning of loop"
 		del_x = random.uniform(-a1, a1)
 		del_y = random.uniform(-a1, a1)
 		del_z = random.uniform(0.0, a1)
@@ -415,9 +416,14 @@ def add_random_surface_atom(unit_cell, atom_type):
 				cartesian_sets.append(cartesian_set)
 		
 		any_too_close = too_close_checker(cartesian_sets, [new_x, new_y, new_z], too_close)
-
+		print "any_too_close: " + str(any_too_close)
+		if any_too_close == True:
+			continue
 
 	# new point passed all tests, add it as an extra set of cartesians to the lattice_point that was chosen
+	print "new point passed tests"
+	print "here any_too_close: " + str(any_too_close)
+	print "inside_sphere: " + str(inside_sphere)
 	random_lattice_point.set_extra_cartesian_coordinates([[new_x, new_y, new_z]])
 	random_lattice_point.set_extra_atoms_list([atom_type])
 	
@@ -438,8 +444,9 @@ def too_close_checker(cartesian_sets, cartesian_set_to_check, dist):
 		del_z = z1 - z2 	
 
 		r = sqrt(del_x**2 + del_y**2 + del_z**2)
-	
+		print "r is: " + str(r)	
 		if r < dist:
+			print "too close!"
 			return True
 		else:
 			continue
