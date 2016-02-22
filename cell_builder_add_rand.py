@@ -334,9 +334,10 @@ class Lattice_point:
 
 
 # random surface atom
-def add_random_surface_atom(unit_cell, atom_type):
+def add_random_surface_atom(unit_cell, atom_type, sub_check = True):
 	# generate random number for radius in range 1.5*a1 and random angles 
 	# choose a random surface layer atom to displace from
+	# sub_check defines whether to allow atoms within the entire top unit cell or only above the surface
 
 	print "in add_random_surface_atom"
 	a1 = unit_cell.a1
@@ -368,10 +369,26 @@ def add_random_surface_atom(unit_cell, atom_type):
 	random_lattice_point = random.choice(list_of_surface_unit_lattice_points)	
 	#print "matrix coordinates of randomly chosen lattice point"
 	random_lattice_point.print_matrix_coordinates()	
-	random_cartesian_set = random.choice(random_lattice_point.cartesian_coordinates)
-	#print "cartesian coordinates of randomly chosen cartesian set"
-	#for coord in random_cartesian_set:
-	#	print coord
+
+	if sub_check == True:
+		random_cartesian_set = random.choice(random_lattice_point.cartesian_coordinates)
+		#print "cartesian coordinates of randomly chosen cartesian set"
+		#for coord in random_cartesian_set:
+		#	print coord
+	else:
+		# find the true surface atoms
+                z_max = 0.0
+		surface_sets = []
+                for cartesian_set in random_lattice_point.cartesian_coordinates:
+                	cart_z = cartesian_set[2]
+                        if cart_z > z_max:
+                        	z_max = cart_z
+                for cartesian_set in random_lattice_point.cartesian_coordinates:
+			cart_z = cartesian_set[2]
+			if cart_z == z_max:
+				surface_sets.append(cartesian_set)
+		# now, finally, we randomy choose a starting atom from the new list that contains only true surface atoms
+		random_cartesian_set = random.choice(surface_sets)
 
 	start_x = random_cartesian_set[0]
 	start_y = random_cartesian_set[1]
@@ -422,7 +439,7 @@ def add_random_surface_atom(unit_cell, atom_type):
 			for extra_cartesian_set in lattice_point.extra_cartesian_coordinates:
 				cartesian_sets.append(extra_cartesian_set)
 		
-		any_too_close = too_close_checker(cartesian_sets, [new_x, new_y, new_z], too_close)
+		any_too_close = too_close_checker(unit_cell, cartesian_sets, [new_x, new_y, new_z], too_close)
 	#	print "any_too_close: " + str(any_too_close)
 		if any_too_close == True:
 			continue
@@ -436,7 +453,7 @@ def add_random_surface_atom(unit_cell, atom_type):
 	
 		
 		
-def too_close_checker(cartesian_sets, cartesian_set_to_check, dist):
+def too_close_checker(unit_cell, cartesian_sets, cartesian_set_to_check, dist):
 	x1 = cartesian_set_to_check[0] 	
 	y1 = cartesian_set_to_check[1] 	
 	z1 = cartesian_set_to_check[2]
@@ -453,8 +470,26 @@ def too_close_checker(cartesian_sets, cartesian_set_to_check, dist):
 		r = sqrt(del_x**2 + del_y**2 + del_z**2)
 		#print "r is: " + str(r)	
 		if r < dist:
-		#	print "too close!"
+			#print "too close!"
 			return True
+		# if any values, x2 y2 z2 are zero; must also check the edge of the unit cell
+		elif x2 == 0.0 or y2 == 0.0 or z2 == 0.0:
+			if x2 == 0.0:
+				x2 = unit_cell.major_axes[0]		
+			if y2 == 0.0:
+				y2 = unit_cell.major_axes[1]		
+			if z2 == 0.0:
+				z2 = unit_cell.major_axes[2]
+	
+			del_x = x1 - x2 	
+			del_y = y1 - y2 	
+			del_z = z1 - z2 	
+		
+			r = sqrt(del_x**2 + del_y**2 + del_z**2)
+			#print "r is: " + str(r)	
+			if r < dist:
+				#print "too close!"
+				return True
 		else:
 			continue
 
@@ -520,7 +555,7 @@ def main():
 	#	point.print_matrix_coordinates()
 
 
-	out_string = 'w_1x1_h40_1' 	
+	out_string = 'w_1x1_h20_surf_1' 	
 	out_string_2 = 'w_2X2_h2_1'
 	new_unit_cell = Unit_cell(lattice_sites)
 	new_unit_cell.set_crystal_type('110_base_centered_cubic', ['W', 'W'])
@@ -532,8 +567,8 @@ def main():
 	new_unit_cell.set_major_axes()
 		
 	shift_coords(new_unit_cell, "z")
-	for i in range(40):
-		add_random_surface_atom(new_unit_cell, 'H')
+	for i in range(20):
+		add_random_surface_atom(new_unit_cell, 'H', sub_check = False)
 
 
 	output_cell(new_unit_cell, out_string)
