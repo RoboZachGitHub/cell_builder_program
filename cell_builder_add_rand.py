@@ -200,7 +200,7 @@ class Unit_cell:
 	
 	
 	def return_maxes(self):
-		print "in return_maxes"
+		#print "in return_maxes"
 		x_max = 0.0
 		y_max = 0.0
 		z_max = 0.0
@@ -216,7 +216,6 @@ class Unit_cell:
 					y_max = cart_y
 				if cart_z > z_max:
 					z_max = cart_z
-		print "(x_max, y_max, z_max): (%f, %f, %f)" % (x_max, y_max, z_max)
 		return x_max, y_max, z_max
 
 	
@@ -256,9 +255,12 @@ class Unit_cell:
 
 class Lattice_point:
 
-	def __init__(self, matrix_coordinates = None, cartesian_coordinates = None, extra_cartesian_coordinates = None, secondary_matrix_coordinates = None):
+	def __init__(self, matrix_coordinates = None, cartesian_coordinates = None, secondary_matrix_coordinates = None):
 #			self.set_matrix_coordinates = self.set_matrix_coordinates(matrix_coordinates)
 		self.matrix_coordinates = matrix_coordinates
+		self.extra_cartesian_coordinates = []
+		self.extra_atoms_list = []
+
 
 	def set_matrix_coordinates(self, integer_list):
 		self.matrix_coordinates = [integer_list[0], integer_list[1], integer_list[2]]
@@ -275,10 +277,16 @@ class Lattice_point:
 		self.atoms_list = atoms_list
 
 	def set_extra_cartesian_coordinates(self, list_of_coordinate_sets):
-		self.extra_cartesian_coordinates = list_of_coordinate_sets
+		#self.extra_cartesian_coordinates = list_of_coordinate_sets
+		for coordinate_set in list_of_coordinate_sets:
+			self.extra_cartesian_coordinates.append(coordinate_set)
+
 
 	def set_extra_atoms_list(self, atoms_list):
-		self.extra_atoms_list = atoms_list
+		#self.extra_atoms_list = atoms_list
+		for atom in atoms_list:
+			self.extra_atoms_list.append(atom)
+
 
 	def print_matrix_coordinates(self):
 		m_x = self.matrix_coordinates[0]
@@ -302,7 +310,7 @@ class Lattice_point:
 			y = cartesian_set[1]
 			z = cartesian_set[2]
 			stringer +=  "{:5s} {:^10.5f} {:^10.5f} {:^10.5f}\n".format(atom_string, x, y, z)
-		try:
+		if len(self.extra_cartesian_coordinates) > 0:
 			extra_cartesian_sets = self.extra_cartesian_coordinates
 			atoms_list = self.extra_atoms_list
 			stringer += "\n! extra coordinates \n"
@@ -312,8 +320,6 @@ class Lattice_point:
 				y = extra_cartesian_set[1]
 				z = extra_cartesian_set[2]
 				stringer += "{:5s} {:^10.5f} {:^10.5f} {:^10.5f}\n".format(atom_string, x, y, z)
-		except AttributeError:
-			pass
 
 		return stringer
 
@@ -377,7 +383,6 @@ def add_random_surface_atom(unit_cell, atom_type):
 	inside_sphere = False
 	any_too_close = True
 	while inside_sphere == False or any_too_close == True:
-		print "at beginning of loop"
 		del_x = random.uniform(-a1, a1)
 		del_y = random.uniform(-a1, a1)
 		del_z = random.uniform(0.0, a1)
@@ -414,16 +419,18 @@ def add_random_surface_atom(unit_cell, atom_type):
 		for lattice_point in list_of_surface_unit_lattice_points: 	
 			for cartesian_set in lattice_point.cartesian_coordinates:
 				cartesian_sets.append(cartesian_set)
+			for extra_cartesian_set in lattice_point.extra_cartesian_coordinates:
+				cartesian_sets.append(extra_cartesian_set)
 		
 		any_too_close = too_close_checker(cartesian_sets, [new_x, new_y, new_z], too_close)
-		print "any_too_close: " + str(any_too_close)
+	#	print "any_too_close: " + str(any_too_close)
 		if any_too_close == True:
 			continue
 
 	# new point passed all tests, add it as an extra set of cartesians to the lattice_point that was chosen
-	print "new point passed tests"
+	#print "new point passed tests"
 	print "here any_too_close: " + str(any_too_close)
-	print "inside_sphere: " + str(inside_sphere)
+	#print "inside_sphere: " + str(inside_sphere)
 	random_lattice_point.set_extra_cartesian_coordinates([[new_x, new_y, new_z]])
 	random_lattice_point.set_extra_atoms_list([atom_type])
 	
@@ -444,9 +451,9 @@ def too_close_checker(cartesian_sets, cartesian_set_to_check, dist):
 		del_z = z1 - z2 	
 
 		r = sqrt(del_x**2 + del_y**2 + del_z**2)
-		print "r is: " + str(r)	
+		#print "r is: " + str(r)	
 		if r < dist:
-			print "too close!"
+		#	print "too close!"
 			return True
 		else:
 			continue
@@ -460,7 +467,29 @@ def kick_atoms(unit_cell, layers_list):
 	a1 = unit_cell.a1
 	pass		
 
+def shift_coords(unit_cell, all_or_z):
+	# shifts all coordinates in x y and z direction by 0.1 angstrom
+	# useful for quantum espresso input/ visualization
+	lattice_points = unit_cell.lattice_point_list
+	for lattice_point in lattice_points:
+		new_cartesian_sets = []
+		for cartesian_set in lattice_point.cartesian_coordinates:			
+			x = cartesian_set[0]
+			y = cartesian_set[1]
+			z = cartesian_set[2]
+				
+			shifted_x = x + 0.1
+			shifted_y = y + 0.1
+			shifted_z = z + 0.1
 
+			if all_or_z == "all":
+				new_cartesian_sets.append([shifted_x, shifted_y, shifted_z])
+			elif all_or_z == "z":
+				new_cartesian_sets.append([x, y, shifted_z])
+
+		lattice_point.set_cartesian_coordinates(new_cartesian_sets)
+
+		
 
 def output_cell(unit_cell, filename):
 	outFile = open(filename + ".xyz", 'w')
@@ -469,7 +498,7 @@ def output_cell(unit_cell, filename):
 	lattice_points = unit_cell.lattice_point_list
 	for lattice_point in lattice_points:
 		out_string += lattice_point.return_cartesian_coordinates_string()
-		out_string += "\n\n\n"	
+		out_string += "\n"	
 
 	outFile.write(out_string)
 	outFile.close()
@@ -477,9 +506,9 @@ def output_cell(unit_cell, filename):
 
 def main():
 	# number of lattice points (number of sub_cells)
-	x = 2 
-	y = 2
-	z = 2
+	x = 1 
+	y = 1
+	z = 3
 	lattice_sites = []
 	for i in range(x):
 		for j in range(y):
@@ -491,6 +520,8 @@ def main():
 	#	point.print_matrix_coordinates()
 
 
+	out_string = 'w_1x1_h40_1' 	
+	out_string_2 = 'w_2X2_h2_1'
 	new_unit_cell = Unit_cell(lattice_sites)
 	new_unit_cell.set_crystal_type('110_base_centered_cubic', ['W', 'W'])
 	new_unit_cell.set_a1(3.1870)
@@ -499,17 +530,18 @@ def main():
 	new_unit_cell.set_cartesians()
 	new_unit_cell.return_maxes()
 	new_unit_cell.set_major_axes()
+		
+	shift_coords(new_unit_cell, "z")
+	for i in range(40):
+		add_random_surface_atom(new_unit_cell, 'H')
 
-	add_random_surface_atom(new_unit_cell, 'H')
-#	new_unit_cell.print_all_cartesian_points()
-	
-	output_cell(new_unit_cell, 'testing')
 
-#	new_unit_cell.return_layers()
-#	new_unit_cell.print_all_cartesian_points()
-#	new_unit_cell.print_all_matrix_points()
-#	new_unit_cell.set_vacuum_list([0.0, 0.0, 20.0])
-#	new_unit_cell.set_major_axes()
+	output_cell(new_unit_cell, out_string)
+	#	new_unit_cell.return_layers()
+	#	new_unit_cell.print_all_cartesian_points()
+	#	new_unit_cell.print_all_matrix_points()
+	#	new_unit_cell.set_vacuum_list([0.0, 0.0, 20.0])
+	#	new_unit_cell.set_major_axes()
 
 
 
