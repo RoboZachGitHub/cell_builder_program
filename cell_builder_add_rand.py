@@ -400,9 +400,9 @@ def add_random_surface_atom(unit_cell, atom_type, sub_check = True):
 	inside_sphere = False
 	any_too_close = True
 	while inside_sphere == False or any_too_close == True:
-		del_x = random.uniform(-a1, a1)
-		del_y = random.uniform(-a1, a1)
-		del_z = random.uniform(0.0, a1)
+		del_x = random.uniform(-0.5*a1, 0.5*a1)
+		del_y = random.uniform(-0.5*a1, 0.5*a1)
+		del_z = random.uniform(0.0, 0.5*a1)
 		# check if within eligible sphere	
 		r = sqrt(del_x**2 + del_y**2 + del_z**2)
 		if r <= (a1):
@@ -453,7 +453,7 @@ def add_random_surface_atom(unit_cell, atom_type, sub_check = True):
 	
 		
 		
-def too_close_checker(unit_cell, cartesian_sets, cartesian_set_to_check, dist):
+def too_close_checker(unit_cell, cartesian_sets, cartesian_set_to_check, too_close):
 	x1 = cartesian_set_to_check[0] 	
 	y1 = cartesian_set_to_check[1] 	
 	z1 = cartesian_set_to_check[2]
@@ -463,33 +463,32 @@ def too_close_checker(unit_cell, cartesian_sets, cartesian_set_to_check, dist):
 		y2 = cartesian_set[1] 	
 		z2 = cartesian_set[2]
 
+		x2_prime = x2 - unit_cell.major_axes[0]		
+		y2_prime = y2 - unit_cell.major_axes[1]		
+		z2_prime = z2 - unit_cell.major_axes[2]
+
 		del_x = x1 - x2 	
 		del_y = y1 - y2 	
 		del_z = z1 - z2 	
 
-		r = sqrt(del_x**2 + del_y**2 + del_z**2)
-		#print "r is: " + str(r)	
-		if r < dist:
+		del_x_prime = x1 - x2_prime 	
+		del_y_prime = y1 - y2_prime 	
+		del_z_prime = z1 - z2_prime
+ 
+		dxs = [del_x, del_x_prime]
+		dys = [del_y, del_y_prime]
+		dzs = [del_z, del_z_prime]
+
+		distances = []
+		for dx in dxs:
+			for dy in dys:
+				for dz in dzs:
+					r = sqrt(dx**2 + dy**2 + dz**2)
+					distances.append(r)
+
+		if any(dist < too_close for dist in distances):
 			#print "too close!"
 			return True
-		# if any values, x2 y2 z2 are zero; must also check the edge of the unit cell
-		elif x2 == 0.0 or y2 == 0.0 or z2 == 0.0:
-			if x2 == 0.0:
-				x2 = unit_cell.major_axes[0]		
-			if y2 == 0.0:
-				y2 = unit_cell.major_axes[1]		
-			if z2 == 0.0:
-				z2 = unit_cell.major_axes[2]
-	
-			del_x = x1 - x2 	
-			del_y = y1 - y2 	
-			del_z = z1 - z2 	
-		
-			r = sqrt(del_x**2 + del_y**2 + del_z**2)
-			#print "r is: " + str(r)	
-			if r < dist:
-				#print "too close!"
-				return True
 		else:
 			continue
 
@@ -555,7 +554,7 @@ def main():
 	#	point.print_matrix_coordinates()
 
 
-	out_string = 'w_1x1_h20_surf_1' 	
+	out_string = 'w_1x1_h15_surf_1' 	
 	out_string_2 = 'w_2X2_h2_1'
 	new_unit_cell = Unit_cell(lattice_sites)
 	new_unit_cell.set_crystal_type('110_base_centered_cubic', ['W', 'W'])
@@ -567,7 +566,7 @@ def main():
 	new_unit_cell.set_major_axes()
 		
 	shift_coords(new_unit_cell, "z")
-	for i in range(20):
+	for i in range(15):
 		add_random_surface_atom(new_unit_cell, 'H', sub_check = False)
 
 
